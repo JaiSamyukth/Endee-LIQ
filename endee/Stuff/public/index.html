@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic Memory System — Endee Vector DB</title>
+    <meta name="description" content="A production-grade agentic AI system combining long-term semantic memory retrieval with LLM reasoning, powered by Endee Vector Database.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================================
+           DESIGN SYSTEM — Cosmic Neural Theme
+           ============================================================ */
+        :root {
+            /* Brand Palette */
+            --brand-primary: #6C5CE7;
+            --brand-secondary: #00CEC9;
+            --brand-accent: #FD79A8;
+            --brand-glow: #A29BFE;
+            
+            /* Surfaces */
+            --bg-deep: #08090E;
+            --bg-base: #0D0F17;
+            --bg-elevated: #141722;
+            --bg-card: rgba(20, 23, 34, 0.75);
+            --bg-glass: rgba(108, 92, 231, 0.06);
+            --bg-input: rgba(255, 255, 255, 0.04);
+            
+            /* Borders */
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-default: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(108, 92, 231, 0.5);
+            
+            /* Text */
+            --text-primary: #F0F0F5;
+            --text-secondary: #8B8DA3;
+            --text-muted: #55576E;
+            
+            /* Gradients */
+            --gradient-brand: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 50%, #00CEC9 100%);
+            --gradient-surface: linear-gradient(180deg, rgba(108, 92, 231, 0.08) 0%, transparent 100%);
+            --gradient-glow: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(108, 92, 231, 0.06), transparent 40%);
+            
+            /* Spacing */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 40px rgba(108, 92, 231, 0.15);
+            --shadow-brand: 0 4px 24px rgba(108, 92, 231, 0.3);
+            
+            /* Transitions */
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ============================================================
+           AMBIENT BACKGROUND — Neural Network Aesthetic
+           ============================================================ */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(108, 92, 231, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 206, 201, 0.05), transparent),
+                radial-gradient(ellipse 50% 60% at 50% 50%, rgba(253, 121, 168, 0.03), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Animated grid overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(108, 92, 231, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(108, 92, 231, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+            animation: gridShift 30s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--brand-glow);
+            opacity: 0;
+            animation: floatParticle 12s infinite;
+        }
+
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 14s; }
+        .particle:nth-child(2) { left: 25%; animation-delay: 2s; animation-duration: 11s; }
+        .particle:nth-child(3) { left: 40%; animation-delay: 4s; animation-duration: 16s; }
+        .particle:nth-child(4) { left: 55%; animation-delay: 1s; animation-duration: 13s; }
+        .particle:nth-child(5) { left: 70%; animation-delay: 3s; animation-duration: 15s; }
+        .particle:nth-child(6) { left: 85%; animation-delay: 5s; animation-duration: 12s; }
+        .particle:nth-child(7) { left: 15%; animation-delay: 6s; animation-duration: 17s; }
+        .particle:nth-child(8) { left: 60%; animation-delay: 7s; animation-duration: 10s; }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* ============================================================
+           LAYOUT
+           ============================================================ */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1480px;
+            margin: 0 auto;
+            padding: 24px 32px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            text-align: center;
+            padding: 48px 0 40px;
+            position: relative;
+        }
+
+        .header__logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .header__icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            background: var(--gradient-brand);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: var(--shadow-brand);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { box-shadow: var(--shadow-brand); }
+            50% { box-shadow: 0 4px 40px rgba(108, 92, 231, 0.45); }
+        }
+
+        .header h1 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .header__subtitle {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            font-weight: 400;
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
+        }
+
+        .header__status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: all 0.4s var(--ease-out);
+        }
+
+        .header__status--loading {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.25);
+            color: var(--brand-glow);
+        }
+
+        .header__status--online {
+            background: rgba(0, 206, 201, 0.1);
+            border: 1px solid rgba(0, 206, 201, 0.3);
+            color: #00CEC9;
+        }
+
+        .header__status--offline {
+            background: rgba(253, 121, 168, 0.1);
+            border: 1px solid rgba(253, 121, 168, 0.3);
+            color: var(--brand-accent);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: statusPulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .header__status--online .status-dot {
+            animation: none;
+            opacity: 1;
+        }
+
+        /* ============================================================
+           MAIN GRID
+           ============================================================ */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            flex: 1;
+        }
+
+        /* ============================================================
+           CARD — Glass Morphism Base
+           ============================================================ */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+        }
+
+        .card:hover {
+            border-color: rgba(108, 92, 231, 0.15);
+        }
+
+        /* Top gradient shine */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(108, 92, 231, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card__title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card__title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: rgba(108, 92, 231, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* ============================================================
+           DOMAIN SELECTOR — Segmented Control
+           ============================================================ */
+        .domain-selector {
+            display: flex;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            border: 1px solid var(--border-subtle);
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .domain-btn {
+            flex: 1;
+            padding: 12px 8px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s var(--ease-out);
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .domain-btn:hover {
+            color: var(--text-secondary);
+        }
+
+        .domain-btn.active {
+            color: var(--text-primary);
+            background: rgba(108, 92, 231, 0.15);
+            box-shadow: 0 2px 12px rgba(108, 92, 231, 0.2);
+        }
+
+        .domain-btn__emoji {
+            font-size: 1.1rem;
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            transition: all 0.3s var(--ease-out);
+            outline: none;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'JetBrains Mono', 'Monaco', monospace;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1), var(--shadow-glow);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           SUBMIT BUTTON — Primary Action
+           ============================================================ */
+        .btn-primary {
+            width: 100%;
+            padding: 15px 24px;
+            background: var(--gradient-brand);
+            color: #FFFFFF;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-out);
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-brand);
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(108, 92, 231, 0.1);
+            color: var(--brand-glow);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: var(--radius-md);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(108, 92, 231, 0.18);
+            border-color: rgba(108, 92, 231, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================================
+           TOAST / MESSAGE
+           ============================================================ */
+        .toast {
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastSlide 0.4s var(--ease-spring);
+        }
+
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast--error {
+            background: rgba(253, 121, 168, 0.08);
+            border: 1px solid rgba(253, 121, 168, 0.2);
+            color: var(--brand-accent);
+        }
+
+        .toast--success {
+            background: rgba(0, 206, 201, 0.08);
+            border: 1px solid rgba(0, 206, 201, 0.2);
+            color: #00CEC9;
+        }
+
+        .toast--loading {
+            background: rgba(108, 92, 231, 0.08);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            color: var(--brand-glow);
+        }
+
+        /* ============================================================
+           RESPONSE SECTION
+           ============================================================ */
+        .response-section {
+            margin-top: 32px;
+            animation: fadeUp 0.5s var(--ease-out);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .response-card {
+            background: rgba(108, 92, 231, 0.04);
+            border: 1px solid rgba(108, 92, 231, 0.12);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .response-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--gradient-brand);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .response-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--brand-glow);
+            margin-bottom: 10px;
+        }
+
+        .response-text {
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 0.94rem;
+        }
+
+        /* ============================================================
+           MEMORY ITEMS
+           ============================================================ */
+        .memory-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--brand-secondary);
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            border-radius: 4px var(--radius-sm) var(--radius-sm) 4px;
+            transition: all 0.25s var(--ease-out);
+        }
+
+        .memory-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: var(--brand-primary);
+        }
+
+        .memory-content {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .memory-meta {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ============================================================
+           SIDEBAR
+           ============================================================ */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .sidebar-card__title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* How it works — feature cards */
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            background: rgba(108, 92, 231, 0.04);
+            border: 1px solid var(--border-subtle);
+            transition: all 0.25s var(--ease-out);
+        }
+
+        .feature-item:hover {
+            background: rgba(108, 92, 231, 0.08);
+            transform: translateX(4px);
+        }
+
+        .feature-item__icon {
+            font-size: 1.1rem;
+            margin-top: 1px;
+        }
+
+        .feature-item__text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+        }
+
+        .feature-item__text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Tech stack badges */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .tech-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            transition: all 0.25s var(--ease-out);
+        }
+
+        .tech-badge:hover {
+            background: rgba(108, 92, 231, 0.08);
+            border-color: rgba(108, 92, 231, 0.2);
+        }
+
+        .tech-badge__icon {
+            font-size: 1rem;
+        }
+
+        .tech-badge__label {
+            font-weight: 500;
+        }
+
+        /* Health status */
+        .health-display {
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.84rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .health-display strong {
+            color: var(--text-primary);
+        }
+
+        /* ============================================================
+           MEMORY MODAL
+           ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 9, 14, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            max-width: 640px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+            transform: scale(0.95) translateY(20px);
+            transition: transform 0.4s var(--ease-spring);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal__title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal__close {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .modal__close:hover {
+            background: rgba(253, 121, 168, 0.1);
+            border-color: rgba(253, 121, 168, 0.3);
+            color: var(--brand-accent);
+        }
+
+        .modal__body {
+            color: var(--text-secondary);
+        }
+
+        .modal__empty {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ============================================================
+           LOADING ANIMATION
+           ============================================================ */
+        .loader {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .loader__dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: loaderBounce 1.2s ease-in-out infinite;
+        }
+
+        .loader__dot:nth-child(2) { animation-delay: 0.15s; }
+        .loader__dot:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes loaderBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        /* ============================================================
+           KEYBOARD SHORTCUT HINT
+           ============================================================ */
+        .kbd-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+            opacity: 0.4;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        kbd {
+            display: inline-flex;
+            padding: 2px 7px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
+        .footer {
+            text-align: center;
+            padding: 32px 0 16px;
+            margin-top: 48px;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .footer strong {
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .footer__stack {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 1100px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .sidebar-card {
+                flex: 1;
+                min-width: 260px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .app-container {
+                padding: 16px;
+            }
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            .header__subtitle {
+                font-size: 0.9rem;
+            }
+            .domain-selector {
+                flex-direction: column;
+            }
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                flex-direction: column;
+            }
+        }
+
+        /* ============================================================
+           SCROLLBAR
+           ============================================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(108, 92, 231, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(108, 92, 231, 0.35);
+        }
+
+        /* ============================================================
+           SELECTION
+           ============================================================ */
+        ::selection {
+            background: rgba(108, 92, 231, 0.3);
+            color: #FFFFFF;
+        }
+
+        /* Action tag */
+        .action-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        .action-tag--responded {
+            background: rgba(0, 206, 201, 0.1);
+            border: 1px solid rgba(0, 206, 201, 0.2);
+            color: #00CEC9;
+        }
+
+        .action-tag--stored {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            color: var(--brand-glow);
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- ════════════════════════════════════════════
+             HEADER
+             ════════════════════════════════════════════ -->
+        <header class="header">
+            <div class="header__logo">
+                <div class="header__icon">🧠</div>
+                <h1>Agentic Memory System</h1>
+            </div>
+            <p class="header__subtitle">Semantic memory retrieval & LLM reasoning — powered by Endee Vector Database</p>
+            <div class="header__status header__status--loading" id="systemStatus">
+                <span class="status-dot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- ════════════════════════════════════════════
+             MAIN CONTENT
+             ════════════════════════════════════════════ -->
+        <div class="main-grid">
+            <!-- LEFT — Input & Response -->
+            <div class="card">
+                <div class="card__title">
+                    <div class="card__title-icon">⚡</div>
+                    Query Agent Memory
+                </div>
+
+                <!-- Domain Selector -->
+                <div class="form-group">
+                    <label class="form-label">Domain</label>
+                    <div class="domain-selector" id="domainSelector">
+                        <button class="domain-btn active" data-domain="task" id="domain-task">
+                            <span class="domain-btn__emoji">📋</span> Tasks
+                        </button>
+                        <button class="domain-btn" data-domain="assistant" id="domain-assistant">
+                            <span class="domain-btn__emoji">🤖</span> Assistant
+                        </button>
+                        <button class="domain-btn" data-domain="research" id="domain-research">
+                            <span class="domain-btn__emoji">🔬</span> Research
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Query Input -->
+                <div class="form-group">
+                    <label class="form-label" for="queryInput">Your Query</label>
+                    <textarea
+                        class="form-textarea"
+                        id="queryInput"
+                        placeholder="E.g., 'Schedule a backend optimization meeting for next Tuesday' or 'What insights did I find about vector indexing?'"
+                        spellcheck="false"
+                    ></textarea>
+                </div>
+
+                <!-- Context Input -->
+                <div class="form-group">
+                    <label class="form-label" for="contextInput">Additional Context <span style="opacity:0.5;text-transform:none;font-weight:400">(optional)</span></label>
+                    <input type="text" class="form-input" id="contextInput" placeholder="Any extra details to provide to the agent...">
+                </div>
+
+                <!-- Submit -->
+                <button class="btn-primary" id="submitBtn" onclick="submitQuery()">
+                    Submit Query
+                </button>
+                <div class="kbd-hint">
+                    <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to submit
+                </div>
+
+                <!-- Messages -->
+                <div id="messageContainer"></div>
+
+                <!-- Response Section -->
+                <div class="response-section" id="responseSection" style="display: none;">
+                    <!-- Agent Response -->
+                    <div class="response-card">
+                        <div class="response-label">🤖 Agent Response</div>
+                        <div class="response-text" id="agentResponse"></div>
+                    </div>
+
+                    <!-- Retrieved Memories -->
+                    <div class="response-card" id="memoriesPanel" style="display: none;">
+                        <div class="response-label">🔍 Retrieved Memories</div>
+                        <div id="retrievedMemories"></div>
+                    </div>
+
+                    <!-- Action Taken -->
+                    <div style="margin-top:12px;" id="actionContainer"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT — Sidebar -->
+            <div class="sidebar">
+                <!-- How It Works -->
+                <div class="sidebar-card">
+                    <div class="sidebar-card__title">How It Works</div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <span class="feature-item__icon">📋</span>
+                            <div class="feature-item__text">
+                                <strong>Task Automation</strong> — Store, track, and recall tasks with semantic pattern matching
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-item__icon">🤖</span>
+                            <div class="feature-item__text">
+                                <strong>Personal Assistant</strong> — Keep notes, preferences, and schedules in long-term memory
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-item__icon">🔬</span>
+                            <div class="feature-item__text">
+                                <strong>Research</strong> — Store findings and retrieve related insights across queries
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tech Stack -->
+                <div class="sidebar-card">
+                    <div class="sidebar-card__title">Tech Stack</div>
+                    <div class="tech-grid">
+                        <div class="tech-badge">
+                            <span class="tech-badge__icon">🔷</span>
+                            <span class="tech-badge__label">Endee</span>
+                        </div>
+                        <div class="tech-badge">
+                            <span class="tech-badge__icon">🦙</span>
+                            <span class="tech-badge__label">GLM-5</span>
+                        </div>
+                        <div class="tech-badge">
+                            <span class="tech-badge__icon">⛓️</span>
+                            <span class="tech-badge__label">LangChain</span>
+                        </div>
+                        <div class="tech-badge">
+                            <span class="tech-badge__icon">🔌</span>
+                            <span class="tech-badge__label">FastAPI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="sidebar-card">
+                    <div class="sidebar-card__title">System Status</div>
+                    <div class="health-display" id="healthStatus">
+                        <div class="loader">
+                            <span class="loader__dot"></span>
+                            <span class="loader__dot"></span>
+                            <span class="loader__dot"></span>
+                        </div>
+                        &nbsp; Checking services...
+                    </div>
+                </div>
+
+                <!-- View Memories -->
+                <button class="btn-secondary" onclick="openMemoryModal()">
+                    View All Memories
+                </button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════
+             FOOTER
+             ════════════════════════════════════════════ -->
+        <footer class="footer">
+            Built with <strong>Endee</strong> · Agentic AI with Long-Term Semantic Memory
+            <div class="footer__stack">FastAPI · LangChain · Ollama · Express · Endee Vector DB</div>
+        </footer>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         MEMORY MODAL
+         ════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="memoryModal">
+        <div class="modal">
+            <div class="modal__header">
+                <div class="modal__title">📚 Stored Memories</div>
+                <button class="modal__close" onclick="closeMemoryModal()">✕</button>
+            </div>
+            <div class="modal__body" id="modalBody">
+                <div class="modal__empty">Loading memories...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════
+         JAVASCRIPT
+         ════════════════════════════════════════════ -->
+    <script>
+        // ── State ──
+        let selectedDomain = 'task';
+
+        // ── Domain Selector ──
+        document.querySelectorAll('.domain-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.domain-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedDomain = this.dataset.domain;
+            });
+        });
+
+        // ── Submit Query ──
+        async function submitQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            const context = document.getElementById('contextInput').value.trim();
+            const messageContainer = document.getElementById('messageContainer');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (!query) {
+                messageContainer.innerHTML = `
+                    <div class="toast toast--error">
+                        <span>⚠</span> Please enter a query before submitting
+                    </div>`;
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            messageContainer.innerHTML = `
+                <div class="toast toast--loading">
+                    <div class="loader">
+                        <span class="loader__dot"></span>
+                        <span class="loader__dot"></span>
+                        <span class="loader__dot"></span>
+                    </div>
+                    Retrieving memories & reasoning...
+                </div>`;
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query,
+                        domain: selectedDomain,
+                        context: context || null,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.details || 'Failed to process query');
+                }
+
+                const data = await response.json();
+
+                // Display agent response
+                document.getElementById('agentResponse').textContent = data.agent_response;
+
+                // Display retrieved memories
+                const memoriesPanel = document.getElementById('memoriesPanel');
+                if (data.retrieved_memories && data.retrieved_memories.length > 0) {
+                    const memoriesHtml = data.retrieved_memories
+                        .map(mem => {
+                            const payload = mem.payload || {};
+                            const timestamp = payload.timestamp
+                                ? new Date(payload.timestamp).toLocaleString()
+                                : 'Unknown';
+                            return `
+                                <div class="memory-item">
+                                    <div class="memory-content">${escapeHtml(payload.content || mem.id)}</div>
+                                    <div class="memory-meta">${payload.domain || 'N/A'} · ${timestamp}</div>
+                                </div>`;
+                        })
+                        .join('');
+                    document.getElementById('retrievedMemories').innerHTML = memoriesHtml;
+                    memoriesPanel.style.display = 'block';
+                } else {
+                    memoriesPanel.style.display = 'none';
+                }
+
+                // Display action tag
+                const isStored = data.action_taken === 'responded_and_stored';
+                document.getElementById('actionContainer').innerHTML = `
+                    <span class="action-tag ${isStored ? 'action-tag--stored' : 'action-tag--responded'}">
+                        ${isStored ? '💾 Memory Stored' : '💬 Responded'}
+                        ${data.memory_id ? ` · ${data.memory_id.slice(0, 8)}…` : ''}
+                    </span>`;
+
+                document.getElementById('responseSection').style.display = 'block';
+                messageContainer.innerHTML = `
+                    <div class="toast toast--success">
+                        <span>✓</span> Query processed successfully
+                    </div>`;
+
+                // Auto-dismiss success after 3s
+                setTimeout(() => {
+                    messageContainer.innerHTML = '';
+                }, 3000);
+
+            } catch (error) {
+                messageContainer.innerHTML = `
+                    <div class="toast toast--error">
+                        <span>✗</span> ${escapeHtml(error.message)}
+                    </div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Query';
+            }
+        }
+
+        // ── Memory Modal ──
+        async function openMemoryModal() {
+            const modal = document.getElementById('memoryModal');
+            const body = document.getElementById('modalBody');
+            modal.classList.add('active');
+
+            body.innerHTML = `
+                <div class="modal__empty">
+                    <div class="loader">
+                        <span class="loader__dot"></span>
+                        <span class="loader__dot"></span>
+                        <span class="loader__dot"></span>
+                    </div>
+                    <br>Loading memories...
+                </div>`;
+
+            try {
+                const response = await fetch(`/api/memories?domain=${selectedDomain}&limit=20`);
+                const data = await response.json();
+
+                if (data.memories && data.memories.length > 0) {
+                    body.innerHTML = data.memories
+                        .map(mem => {
+                            const payload = mem.payload || {};
+                            const timestamp = payload.timestamp
+                                ? new Date(payload.timestamp).toLocaleString()
+                                : 'Unknown';
+                            return `
+                                <div class="memory-item">
+                                    <div class="memory-content">${escapeHtml(payload.content || mem.id || 'N/A')}</div>
+                                    <div class="memory-meta">${payload.domain || 'N/A'} · ${timestamp}</div>
+                                </div>`;
+                        })
+                        .join('');
+                } else {
+                    body.innerHTML = `
+                        <div class="modal__empty">
+                            <div style="font-size:2rem;margin-bottom:12px">📭</div>
+                            No memories stored in <strong>${selectedDomain}</strong> domain yet.<br>
+                            <span style="opacity:0.6;font-size:0.85rem">Submit a query to start building memory.</span>
+                        </div>`;
+                }
+            } catch (error) {
+                body.innerHTML = `
+                    <div class="toast toast--error">
+                        <span>✗</span> Failed to load memories: ${escapeHtml(error.message)}
+                    </div>`;
+            }
+        }
+
+        function closeMemoryModal() {
+            document.getElementById('memoryModal').classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('memoryModal').addEventListener('click', function (e) {
+            if (e.target === this) closeMemoryModal();
+        });
+
+        // Close modal on Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeMemoryModal();
+        });
+
+        // ── Health Check ──
+        async function checkHealth() {
+            const statusEl = document.getElementById('systemStatus');
+            const statusText = document.getElementById('statusText');
+            const healthEl = document.getElementById('healthStatus');
+
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+
+                statusEl.className = 'header__status header__status--online';
+                statusText.textContent = 'All Systems Online';
+
+                healthEl.innerHTML = `
+                    <strong style="color:#00CEC9">✓ Connected</strong><br>
+                    <span style="opacity:0.7">LLM:</span> ${data.model}<br>
+                    <span style="opacity:0.7">Embeddings:</span> ${data.embedding_model || 'nomic-embed-text'}<br>
+                    <span style="opacity:0.7">Endee:</span> Ready`;
+            } catch (error) {
+                statusEl.className = 'header__status header__status--offline';
+                statusText.textContent = 'Backend Offline';
+
+                healthEl.innerHTML = `
+                    <strong style="color:var(--brand-accent)">✗ Disconnected</strong><br>
+                    <span style="opacity:0.6">Ensure backend is running on :8000</span>`;
+            }
+        }
+
+        // ── Keyboard Shortcuts ──
+        document.getElementById('queryInput').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                submitQuery();
+            }
+        });
+
+        // ── Utilities ──
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ── Init ──
+        window.addEventListener('load', checkHealth);
+    </script>
+</body>
+</html>

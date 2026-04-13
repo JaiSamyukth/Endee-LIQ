@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # ── Ollama — local LLM + embedding server ──────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    # GPU passthrough (uncomment if you have NVIDIA GPU):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ── Endee — vector database ─────────────────────────────────────────────────
+  endee:
+    image: endeeio/endee-server:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - endee_data:/data
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
+    restart: unless-stopped
+    # Uncomment to enable auth token:
+    # environment:
+    #   NDD_AUTH_TOKEN: "your_secure_token"
+
+  # ── FastAPI backend ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - ENDEE_BASE_URL=http://endee:8080
+      - ENDEE_AUTH_TOKEN=
+      - LLM_MODEL=glm-5
+      - EMBEDDING_MODEL=nomic-embed-text
+    depends_on:
+      - ollama
+      - endee
+    restart: unless-stopped
+
+  # ── Express frontend ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  endee_data:

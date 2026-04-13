@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import ast; ast.parse\\(open\\('agent_backend.py'\\).read\\(\\)\\); print\\('✓ Python syntax OK'\\)\")",
+      "Bash(node -c server.js)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('agent_backend.py', encoding='utf-8'\\).read\\(\\)\\); print\\('Python syntax OK'\\)\")",
+      "Bash(python -c ':*)"
+    ]
+  }
+}

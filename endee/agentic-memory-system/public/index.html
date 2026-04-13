@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic Memory OS</title>
+    
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Marked.js for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            /* World-Class Light Theme */
+            --bg-base: #FDFDFE;
+            --bg-surface: #FFFFFF;
+            --bg-elevated: #F4F5F7;
+            
+            --accent-primary: #4F46E5;
+            --accent-secondary: #06B6D4;
+            --accent-tertiary: #E11D48;
+            
+            --text-heading: #0F172A;
+            --text-primary: #334155;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            
+            --border-light: rgba(15, 23, 42, 0.08);
+            --border-hover: rgba(15, 23, 42, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            
+            --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 12px 32px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 24px 64px rgba(15, 23, 42, 0.12);
+            
+            --glow-primary: 0 0 40px rgba(79, 70, 229, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-full: 9999px;
+            
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        [data-theme="dark"] {
+            /* Deep Cosmic Dark Theme */
+            --bg-base: #0B0E14;
+            --bg-surface: #11151E;
+            --bg-elevated: #1A202C;
+            
+            --accent-primary: #818CF8;
+            --accent-secondary: #22D3EE;
+            --accent-tertiary: #FB7185;
+            
+            --text-heading: #F8FAFC;
+            --text-primary: #E2E8F0;
+            --text-secondary: #94A3B8;
+            --text-muted: #475569;
+            
+            --border-light: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.12);
+            --glass-bg: rgba(17, 21, 30, 0.65);
+            
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.6);
+            --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.8);
+            
+            --glow-primary: 0 0 60px -15px rgba(129, 140, 248, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.5s var(--ease-out), color 0.5s var(--ease-out);
+        }
+
+        /* Elaborate Glowing Background Mesh */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 40%, rgba(79, 70, 229, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(225, 29, 72, 0.04) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(80px);
+            animation: breathe 20s ease-in-out infinite alternate;
+        }
+
+        [data-theme="dark"] .ambient-bg {
+            background: 
+                radial-gradient(circle at 10% 40%, rgba(129, 140, 248, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 90% 20%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(251, 113, 133, 0.06) 0%, transparent 60%);
+        }
+
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        [data-theme="dark"] .grid-overlay {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(1) translate(0px, 0px); opacity: 0.7; }
+            50% { transform: scale(1.05) translate(20px, -20px); opacity: 1; }
+            100% { transform: scale(1) translate(-20px, 20px); opacity: 0.7; }
+        }
+
+        /* --- Header Top Bar --- */
+        .top-bar {
+            position: relative;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%);
+            border-bottom: 1px solid var(--border-light);
+            transition: background 0.5s var(--ease-out), border-color 0.5s var(--ease-out);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            box-shadow: var(--glow-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: transform 0.4s var(--ease-elastic), box-shadow 0.4s var(--ease-out);
+        }
+        
+        .brand:hover .brand-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 50px rgba(79, 70, 229, 0.4);
+        }
+
+        .brand-text h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-heading);
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .brand-text span {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent-primary);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .vault-btn {
+            background: rgba(79, 70, 229, 0.08);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            color: var(--accent-primary);
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-elastic);
+        }
+        
+        .vault-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary);
+        }
+
+        [data-theme="dark"] .vault-btn {
+            color: #fff;
+            background: rgba(129, 140, 248, 0.15);
+        }
+        [data-theme="dark"] .vault-btn:hover {
+            background: var(--accent-primary);
+        }
+
+        .status-pill {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .status-pill.online {
+            color: var(--accent-secondary);
+            background: rgba(6, 182, 212, 0.05);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-heading);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-elastic);
+            background: var(--bg-surface);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-elevated);
+            transform: scale(1.1) rotate(15deg);
+            border-color: var(--text-muted);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            scroll-behavior: smooth;
+        }
+
+        /* Premium Scrollbar */
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background: var(--border-hover);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            animation: fadeInScale 1s var(--ease-out);
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.95) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .welcome-screen i[data-lucide="sparkles"] {
+            width: 56px;
+            height: 56px;
+            color: var(--accent-primary);
+            margin-bottom: 32px;
+            filter: drop-shadow(0 0 20px rgba(79, 70, 229, 0.4));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .welcome-screen h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        
+        .welcome-screen span {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-screen p {
+            line-height: 1.7;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        .capabilities {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .cap-pill {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            padding: 12px 20px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s var(--ease-elastic), box-shadow 0.3s ease;
+        }
+        
+        .cap-pill:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
+        }
+        
+        .cap-pill i { color: var(--accent-primary); }
+
+        /* Chat Bubbles */
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 860px;
+            margin: 0 auto;
+            width: 100%;
+            animation: messagePop 0.5s var(--ease-elastic) forwards;
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+        }
+
+        @keyframes messagePop {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: var(--text-heading);
+            color: var(--bg-base);
+            padding: 20px 28px;
+            border-radius: 24px 24px 4px 24px;
+            font-size: 16px;
+            font-weight: 400;
+            box-shadow: var(--shadow-md);
+            max-width: 80%;
+            line-height: 1.6;
+        }
+
+        .agent-response {
+            align-self: flex-start;
+            width: 100%;
+        }
+
+        .response-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px) saturate(150%);
+            -webkit-backdrop-filter: blur(24px) saturate(150%);
+            border: 1px solid var(--border-light);
+            border-radius: 12px 24px 24px 24px;
+            padding: 32px;
+            position: relative;
+            box-shadow: var(--shadow-md);
+            transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        [data-theme="dark"] .response-card {
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        .markdown-body {
+            color: var(--text-primary);
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .markdown-body p { margin-bottom: 20px; }
+        .markdown-body p:last-child { margin-bottom: 0; }
+        
+        .markdown-body pre {
+            background: var(--bg-surface);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin: 24px 0;
+            border: 1px solid var(--border-light);
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        [data-theme="dark"] .markdown-body pre { 
+            background: #000; 
+            border-color: rgba(255,255,255,0.1);
+        }
+        
+        .markdown-body code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: rgba(128,128,128,0.1);
+            padding: 3px 6px;
+            border-radius: 6px;
+            color: var(--accent-tertiary);
+        }
+        [data-theme="dark"] .markdown-body code { color: var(--accent-secondary); }
+        .markdown-body pre code { background: transparent; padding: 0; color: inherit; }
+        .markdown-body ul, .markdown-body ol { margin-left: 24px; margin-bottom: 20px; }
+        .markdown-body li { margin-bottom: 10px; }
+        .markdown-body strong { color: var(--text-heading); font-weight: 700; }
+
+        .memory-tray {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px dashed var(--border-light);
+        }
+
+        .memory-tray-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .memory-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .memory-chip {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s var(--ease-elastic);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .memory-chip:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: var(--accent-secondary);
+            color: var(--text-heading);
+            box-shadow: var(--shadow-md);
+        }
+
+        .memory-chip strong {
+            color: var(--accent-secondary);
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+        }
+
+        .action-tag {
+            position: absolute;
+            top: -14px;
+            right: 32px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .action-tag.stored { 
+            color: var(--accent-tertiary); 
+            border-color: rgba(225, 29, 72, 0.2);
+            background: rgba(225, 29, 72, 0.05);
+        }
+        [data-theme="dark"] .action-tag.stored {
+            color: #fff;
+            background: var(--accent-tertiary);
+            border-color: var(--accent-tertiary);
+            box-shadow: 0 4px 15px rgba(251, 113, 133, 0.3);
+        }
+
+        /* --- Input Area --- */
+        .input-area {
+            padding: 0 24px 48px;
+            background: linear-gradient(to top, var(--bg-base) 80%, transparent);
+            position: relative;
+            z-index: 50;
+        }
+
+        .input-container {
+            max-width: 860px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 51;
+            border-radius: var(--radius-lg);
+            background: var(--bg-surface);
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-container:focus-within {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12), 0 0 0 2px var(--accent-primary);
+        }
+        
+        [data-theme="dark"] .input-container {
+            border: 1px solid var(--border-light);
+        }
+        [data-theme="dark"] .input-container:focus-within {
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 2px var(--accent-primary);
+        }
+
+        .input-box {
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 28px 32px;
+            padding-right: 80px;
+            color: var(--text-heading);
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            resize: none;
+            height: 80px;
+            max-height: 250px;
+            overflow-y: auto;
+            line-height: 1.6;
+            outline: none;
+        }
+
+        .input-box::placeholder {
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .submit-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s var(--ease-elastic);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.1);
+            background: var(--accent-secondary);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .submit-btn:disabled {
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: scale(1);
+            box-shadow: none;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; background: var(--accent-secondary); }
+        .loading-dot:nth-child(3) { background: var(--accent-tertiary); }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Processing indicator */
+        .processing-ring {
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 26px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary), var(--accent-primary));
+            background-size: 300% 300%;
+            z-index: -1;
+            animation: gradientSpin 3s ease infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .input-container.processing .processing-ring {
+            opacity: 1;
+        }
+        
+        @keyframes gradientSpin {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- Toast Notification --- */
+        #toast-container {
+            position: fixed;
+            top: 80px;
+            right: 32px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .toast {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            color: var(--text-heading);
+            padding: 20px 24px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.5s var(--ease-elastic);
+        }
+
+        .toast.error i { color: var(--accent-tertiary); }
+        .toast.success i { color: var(--accent-secondary); }
+
+        @keyframes slideInRight {
+            from { transform: translateX(120%) scale(0.9); opacity: 0; }
+            to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        @keyframes fadeOutRight {
+            to { transform: translateX(120%) scale(0.9); opacity: 0; }
+        }
+
+        /* --- Memory Vault Modal --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+            animation: overlayIn 0.4s forwards;
+        }
+        
+        @keyframes overlayIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+            transform: scale(0.95) translateY(20px);
+            transition: transform 0.4s var(--ease-elastic);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--glass-bg);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .modal-close {
+            background: var(--bg-elevated);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: var(--text-heading);
+            color: var(--bg-base);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 32px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 10px; }
+
+        .memory-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .memory-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--accent-secondary);
+        }
+
+        .memory-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--border-light);
+        }
+
+        .memory-domain {
+            color: var(--accent-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: rgba(79, 70, 229, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .memory-content {
+            font-size: 15px;
+            color: var(--text-primary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="ambient-bg"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Header -->
+    <header class="top-bar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i data-lucide="brain-circuit"></i>
+            </div>
+            <div class="brand-text">
+                <h1>Endee OS</h1>
+                <span>Agentic Memory</span>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <button class="vault-btn" id="vaultBtn">
+                <i data-lucide="database"></i> Memory Vault
+            </button>
+            <div class="status-pill" id="status-pill">
+                <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i>
+                <span id="connection-text">Optimal</span>
+            </div>
+            <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">
+                <i data-lucide="sun"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="chat-container" id="chatList">
+            <div class="welcome-screen" id="welcomeScreen">
+                <i data-lucide="sparkles" style="width: 48px; height: 48px; color: var(--accent-primary); margin-bottom: 24px;"></i>
+                <h2>Autonomous <span>Routing</span> Active</h2>
+                <p>The system will automatically determine the best tool and knowledge domain (Task, Assistant, or Research) for your prompt.</p>
+                
+                <div class="capabilities">
+                    <div class="cap-pill">
+                        <i data-lucide="check-square" style="width: 16px;"></i> Task Management
+                    </div>
+                    <div class="cap-pill">
+                        <i data-lucide="user" style="width: 16px;"></i> Preferences
+                    </div>
+                    <div class="cap-pill">
+                        <i data-lucide="flask-conical" style="width: 16px;"></i> Intel
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-container">
+                <div class="processing-ring"></div>
+                <textarea 
+                    id="queryInput" 
+                    class="input-box" 
+                    placeholder="Message the agent... (Shift+Enter for new line)"
+                    rows="1"
+                ></textarea>
+                <button class="submit-btn" id="submitBtn">
+                    <i data-lucide="corner-down-left" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container"></div>
+
+    <!-- Memory Vault Modal -->
+    <div class="modal-overlay" id="vaultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i data-lucide="database" style="color: var(--accent-primary);"></i> Endee Memory Vault</h2>
+                <button class="modal-close" id="closeVaultBtn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" id="vaultBody">
+                <div class="loading" style="margin: 0 auto;">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const queryInput = document.getElementById('queryInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const chatList = document.getElementById('chatList');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const connectionText = document.getElementById('connection-text');
+        
+        // Modal Elements
+        const vaultBtn = document.getElementById('vaultBtn');
+        const vaultModal = document.getElementById('vaultModal');
+        const closeVaultBtn = document.getElementById('closeVaultBtn');
+        const vaultBody = document.getElementById('vaultBody');
+        
+        let isProcessing = false;
+
+        // --- Theme Toggle Logic ---
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let currentTheme = localStorage.getItem('endee-theme') || (systemPrefersDark ? 'dark' : 'light');
+        applyTheme(currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(currentTheme);
+            localStorage.setItem('endee-theme', currentTheme);
+        });
+
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            const icon = theme === 'dark' ? 'sun' : 'moon';
+            themeToggle.innerHTML = `<i data-lucide="${icon}"></i>`;
+            lucide.createIcons();
+        }
+
+        // --- Auto-Resize Textarea ---
+        queryInput.addEventListener('input', function() {
+            this.style.height = '72px';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // --- Health Check ---
+        async function checkHealth() {
+            try {
+                const res = await fetch('/api/health');
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    connectionText.innerText = `System Stable`;
+                    document.getElementById('status-pill').classList.add('online');
+                } else {
+                    throw new Error('Unhealthy');
+                }
+            } catch (err) {
+                connectionText.innerText = 'Offline';
+                document.getElementById('status-pill').classList.remove('online');
+            }
+        }
+        checkHealth();
+        setInterval(checkHealth, 30000);
+
+        // --- High-Priority Notification Polling ---
+        async function pollNotifications() {
+            try {
+                const res = await fetch('/api/notifications/poll');
+                const data = await res.json();
+                if (data.notifications && data.notifications.length > 0) {
+                    data.notifications.forEach(notif => {
+                        showNotificationToast(notif.text);
+                    });
+                }
+            } catch (err) {
+                // Silently ignore ping errors
+            }
+        }
+        setInterval(pollNotifications, 10000); // 10s poll 
+
+        function showNotificationToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast success`;
+            toast.style.borderLeft = '4px solid var(--accent-tertiary)';
+            toast.style.boxShadow = '0 0 30px rgba(225, 29, 72, 0.3)';
+            toast.innerHTML = `<i data-lucide="bell-ring" style="color: var(--accent-tertiary); animation: float 2s infinite;"></i> 
+                <div>
+                    <strong style="color: var(--accent-tertiary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 4px;">ACTIVE ALARM</strong>
+                    <span style="font-size: 15px; font-weight: 500;">${message.replace(/</g, "&lt;")}</span>
+                </div>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            // Stay for 25 seconds
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutRight 0.5s forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 25000);
+        }
+
+        // --- Toast Notifications ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'error' ? 'alert-circle' : 'check-circle';
+            toast.innerHTML = `<i data-lucide="${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutRight 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // --- UI Updaters ---
+        function addUserMessage(text) {
+            if (welcomeScreen) welcomeScreen.style.display = 'none';
+            const html = `<div class="user-message">${text.replace(/</g, "&lt;")}</div>`;
+            chatList.insertAdjacentHTML('beforeend', `<div class="message-wrapper">${html}</div>`);
+            scrollToBottom();
+        }
+
+        function showLoading() {
+            // Add a processing ring to the input container
+            document.querySelector('.input-container').classList.add('processing');
+            
+            const html = `
+                <div class="message-wrapper" id="loadingBubble">
+                    <div class="agent-response">
+                        <div class="response-card" style="padding: 16px 24px; width: max-content;">
+                            <div class="loading">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            chatList.insertAdjacentHTML('beforeend', html);
+            scrollToBottom();
+        }
+
+        function removeLoading() {
+            document.querySelector('.input-container').classList.remove('processing');
+            const loading = document.getElementById('loadingBubble');
+            if (loading) loading.remove();
+        }
+
+        function addAgentResponse(data) {
+            const isStored = data.action_taken && data.action_taken.includes('stored');
+            const tagClass = isStored ? 'stored' : '';
+            const tagIcon = isStored ? 'database' : 'message-square';
+            const tagText = isStored ? 'Memory Vaulted' : 'Responded';
+
+            const parsedContent = marked.parse(data.agent_response || "No response generated.");
+
+            let memoryHtml = '';
+            if (data.retrieved_memories && data.retrieved_memories.length > 0) {
+                const chips = data.retrieved_memories.map(mem => {
+                    const preview = mem.payload?.content?.substring(0, 45).replace(/</g, "&lt;") || 'Memory Chunk';
+                    const domainBadge = mem.payload?.domain ? `[${mem.payload.domain.toUpperCase()}] ` : '';
+                    return `
+                        <div class="memory-chip" title="Score: ${mem.similarity.toFixed(2)}">
+                            <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
+                            <strong>${domainBadge}</strong> ${preview}...
+                        </div>`;
+                }).join('');
+                
+                memoryHtml = `
+                    <div class="memory-tray">
+                        <div class="memory-tray-title">
+                            <i data-lucide="layers" style="width: 12px; height: 12px;"></i>
+                            Context Retrieved (${data.retrieved_memories.length})
+                        </div>
+                        <div class="memory-chips">
+                            ${chips}
+                        </div>
+                    </div>`;
+            }
+
+            const html = `
+                <div class="message-wrapper">
+                    <div class="agent-response">
+                        <div class="response-card">
+                            <div class="action-tag ${tagClass}">
+                                <i data-lucide="${tagIcon}" style="width: 14px; height: 14px;"></i>
+                                ${tagText}
+                            </div>
+                            <div class="markdown-body">
+                                ${parsedContent}
+                            </div>
+                            ${memoryHtml}
+                        </div>
+                    </div>
+                </div>`;
+            
+            chatList.insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
+            
+            // Force multiple scroll updates to ensure images/markdown don't break scroll state
+            scrollToBottom();
+            setTimeout(scrollToBottom, 50);
+            setTimeout(scrollToBottom, 150);
+        }
+
+        function scrollToBottom() {
+            if (!chatList) return;
+            chatList.scroll({
+                top: chatList.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // --- Core Submission Logic ---
+        async function submitQuery() {
+            const text = queryInput.value.trim();
+            if (!text || isProcessing) return;
+
+            isProcessing = true;
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            
+            queryInput.value = '';
+            queryInput.style.height = '80px';
+            
+            addUserMessage(text);
+            showLoading();
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: text }) // No longer sending domain manually
+                });
+
+                const data = await response.json();
+                removeLoading();
+
+                if (!response.ok) throw new Error(data.details || data.error || 'Server error');
+                
+                addAgentResponse(data);
+                
+                if (data.action_taken && data.action_taken.includes('stored')) {
+                    showToast('Data autonomously routed to Endee Memory Vault');
+                }
+
+            } catch (err) {
+                removeLoading();
+                showToast(err.message, 'error');
+                console.error(err);
+            } finally {
+                isProcessing = false;
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                setTimeout(() => queryInput.focus(), 100);
+            }
+        }
+
+        // --- Event Listeners ---
+        submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            submitQuery();
+        });
+        
+        queryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitQuery();
+            }
+        });
+
+        // --- Memory Vault Modal Logic ---
+        vaultBtn.addEventListener('click', async () => {
+            vaultModal.classList.add('active');
+            vaultBody.innerHTML = `
+                <div class="loading" style="margin: 0 auto; padding: 40px;">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>`;
+                
+            try {
+                const res = await fetch('/api/memories?limit=50');
+                const data = await res.json();
+                
+                if (!data.memories || data.memories.length === 0) {
+                    vaultBody.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Vault is currently empty.</div>';
+                    return;
+                }
+
+                vaultBody.innerHTML = data.memories.map(mem => {
+                    const p = mem.payload || {};
+                    const domain = p.domain || 'Uncategorised';
+                    const content = p.content || '...';
+                    const time = p.timestamp ? new Date(p.timestamp).toLocaleString() : 'N/A';
+                    return `
+                        <div class="memory-card">
+                            <div class="memory-meta">
+                                <span class="memory-domain">[${domain}]</span>
+                                <span>${time} · Score: ${mem.similarity.toFixed(2)}</span>
+                            </div>
+                            <div class="memory-content">${content.replace(/</g, "&lt;")}</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                vaultBody.innerHTML = `<div style="text-align: center; color: var(--accent-tertiary); padding: 40px;">Failed to load memories.</div>`;
+            }
+        });
+
+        closeVaultBtn.addEventListener('click', () => {
+            vaultModal.classList.remove('active');
+        });
+
+        // Close modal on outside click
+        vaultModal.addEventListener('click', (e) => {
+            if (e.target === vaultModal) {
+                vaultModal.classList.remove('active');
+            }
+        });
+
+        // Initial Focus
+        window.onload = () => setTimeout(() => queryInput.focus(), 100);
+    </script>
+</body>
+</html>
