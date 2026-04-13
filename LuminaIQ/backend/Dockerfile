@@ -1,0 +1,11 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY backend/requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/ .
+
+CMD ["sh", "-c", "gunicorn -w ${WEB_CONCURRENCY:-4} -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:${PORT:-8000} --timeout 600 --keep-alive 30 --max-requests 1000 --max-requests-jitter 50"]
